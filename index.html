@@ -80,6 +80,13 @@
                     dissolvedOxygen: 10.0, // High dissolved oxygen
                     temperature: 22.0, // Optimal temperature
                 },
+                // Start of Modified Code
+                wasteCollection: {
+                    solid: { current: 0, max: 140 }, // Reset collected to 0kg
+                    liquid: { current: 0, max: 120 }, // Reset collected to 0kg
+                    gas: { current: 0, max: 20 }, // Reset collected to 0kg
+                },
+                // End of Modified Code
                 lastUpdate: new Date(),
             });
 
@@ -191,6 +198,14 @@
                 return <span className={color}>{status}</span>;
             };
 
+            // Start of Modified Code
+            const totalMaxCapacity = 350; // Total capacity set to 350kg as requested
+            // End of Modified Code
+            const totalCollectedWaste = aquaLensData.wasteCollection.solid.current + aquaLensData.wasteCollection.liquid.current + aquaLensData.wasteCollection.gas.current;
+            const totalRemainingWaste = totalMaxCapacity - totalCollectedWaste;
+            const totalCollectedPercentage = (totalCollectedWaste / totalMaxCapacity) * 100;
+            const totalRemainingPercentage = 100 - totalCollectedPercentage;
+
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
                     {/* Aqua Lens Status Card */}
@@ -230,6 +245,48 @@
                         </div>
                     </div>
 
+                    {/* Waste Collection Data Card with new layout and details */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                        <h2 className="text-2xl font-semibold mb-4 text-blue-800 border-b pb-2">Waste Collection Data</h2>
+                        <div className="mb-4 text-center">
+                            <p className="text-xl font-bold text-blue-700">Total Capacity: {totalMaxCapacity} kg</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-center mb-4">
+                            <div>
+                                <p className="font-semibold text-lg">Solid</p>
+                                <p className="text-sm text-gray-600">({aquaLensData.wasteCollection.solid.max} kg max)</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-lg">Liquid</p>
+                                <p className="text-sm text-gray-600">({aquaLensData.wasteCollection.liquid.max} kg max)</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-lg">Gas</p>
+                                <p className="text-sm text-gray-600">({aquaLensData.wasteCollection.gas.max} kg max)</p>
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            {Object.entries(aquaLensData.wasteCollection).map(([type, data]) => (
+                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <span className="font-medium capitalize flex items-center">
+                                        {type === 'solid' && <lucideReact.Trash2 size={20} className="mr-2 text-gray-500" />}
+                                        {type === 'liquid' && <lucideReact.Droplet size={20} className="mr-2 text-gray-500" />}
+                                        {type === 'gas' && <lucideReact.Cloud size={20} className="mr-2 text-gray-500" />}
+                                        {type} Waste:
+                                    </span>
+                                    <div className="text-right">
+                                        <p>Collected: <span className="font-bold text-blue-600">{data.current} kg</span></p>
+                                        <p>Remaining: <span className="font-bold text-red-500">{data.max - data.current} kg</span></p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+                            <p className="text-lg font-semibold text-blue-800">Overall Status:</p>
+                            <p className="text-md">Collected: <span className="font-bold">{totalCollectedWaste} kg ({totalCollectedPercentage.toFixed(1)}%)</span></p>
+                            <p className="text-md">Remaining: <span className="font-bold">{totalRemainingWaste} kg ({totalRemainingPercentage.toFixed(1)}%)</span></p>
+                        </div>
+                    </div>
                     {/* Water Quality Data Card */}
                     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
                         <h2 className="text-2xl font-semibold mb-4 text-blue-800 border-b pb-2">Water Quality Data</h2>
@@ -428,7 +485,6 @@
         };
 
         // Load Lucide React Icons (simulated for direct HTML embedding)
-        // In a real React app, you would import them like: import { BatteryCharging, Gauge, ... } from 'lucide-react';
         const lucideReact = {
             LayoutDashboard: (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>,
             Leaf: (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 18 2c1 2.5 2 4.99 2 8 0 5.19-2.69 10.74-11 14z"/><path d="M2 21s1.5 0 4-2c1.5-1.2 2.5-1.2 4-2C11.5 15 13 14.5 14 12"/></svg>,
@@ -451,6 +507,7 @@
             Radar: (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M19.07 4.93A10 10 0 0 0 6.93 19.07"/><path d="M12 2v10"/><path d="M14.36 8.64A4 4 0 0 0 8.64 14.36"/><path d="M22 12h-4"/><path d="M2 12h4"/><path d="M12 22v-4"/></svg>,
             Sparkles: (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="m12 3-1.912 5.813H2l4.85 3.528L3.088 18 8 14.414 12 20l3.912-5.586L20.912 18l-1.95-6.659L22 8.813h-8.088L12 3Z"/></svg>,
             Globe: (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20A14.5 14.5 0 0 0 12 2Z"/><path d="M2.18 15.29a14.48 14.48 0 0 1 0-6.58"/><path d="M21.82 15.29a14.48 14.48 0 0 0 0-6.58"/><path d="M10 22v-6.31c0-.46.33-.87.79-1.04A2.73 2.73 0 0 1 12 14c.73 0 1.4.24 1.79.65.46.17.79.58.79 1.04V22"/></svg>,
+            Trash2: (props) => <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
         };
 
 
